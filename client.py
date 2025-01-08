@@ -8,10 +8,8 @@ PORT = 1883
 USERNAME = "dc24"
 PASSWORD = "kmitl-dc24"
 
-# Your group name
-GROUP_NAME = "DC Universe"  # Change this to your actual group name
+GROUP_NAME = "DC Universe"
 
-# Topic for sending "hello" message
 HELLO_TOPIC = "vivisystem/hello"
 
 # Callback when connection to broker is established
@@ -27,7 +25,6 @@ def send_hello_message(client):
     # Get the current UNIX timestamp
     timestamp = int(time.time())
 
-    # Create the message format
     message = {
         "type": "hello",
         "sender": GROUP_NAME,
