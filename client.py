@@ -43,7 +43,7 @@ def send_hello_message(client):
     print(f"Sent hello message: {payload}")
 
 # Initialize MQTT client
-client = mqtt.Client()
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
 client.username_pw_set(USERNAME, PASSWORD)
 client.on_connect = on_connect
 
