@@ -1,0 +1,20 @@
+[project]
+name = "fish-pond"
+version = "0.1.0"
+description = "A virtual fish pond application"
+authors = [
+    {name = "PomPerWoW", email = "chatthanes22@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.9,<3.14"
+dependencies = [
+    "pyside6>=6.8.1.1,<7.0.0.0",
+    "paho-mqtt>=2.1.0,<3.0.0",
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
