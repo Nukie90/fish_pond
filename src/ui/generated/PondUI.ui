@@ -54,7 +54,7 @@
     <property name="frameShadow">
      <enum>QFrame::Raised</enum>
     </property>
-    <widget class="QPushButton" name="removefishButton">
+    <widget class="QPushButton" name="sendfishButton">
      <property name="geometry">
       <rect>
        <x>330</x>
@@ -65,12 +65,12 @@
      </property>
      <property name="styleSheet">
       <string notr="true">font: 600 18pt &quot;Times New Roman&quot;;
-background-color: #FF6666;
+background-color: #FE9F06;
 border: none;
 border-radius: 8px;</string>
      </property>
      <property name="text">
-      <string>Remove Fish</string>
+      <string>Send Fish</string>
      </property>
     </widget>
     <widget class="QPushButton" name="addfishButton">
@@ -136,7 +136,7 @@ border: 1px solid black;</string>
   </widget>
  </widget>
  <resources>
-  <include location="picture.qrc"/>
+  <include location="resources.qrc"/>
  </resources>
  <connections/>
 </ui>

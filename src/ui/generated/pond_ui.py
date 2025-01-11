@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'PondUI.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.6.0
+## Created by: Qt User Interface Compiler version 6.8.1
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -71,12 +71,12 @@ class Ui_MainWindow(object):
         self.buttonsFrame.setStyleSheet("border: 1px solid black;")
         self.buttonsFrame.setFrameShape(QFrame.StyledPanel)
         self.buttonsFrame.setFrameShadow(QFrame.Raised)
-        self.removefishButton = QPushButton(self.buttonsFrame)
-        self.removefishButton.setObjectName("removefishButton")
-        self.removefishButton.setGeometry(QRect(330, 10, 230, 41))
-        self.removefishButton.setStyleSheet(
+        self.sendfishButton = QPushButton(self.buttonsFrame)
+        self.sendfishButton.setObjectName("sendfishButton")
+        self.sendfishButton.setGeometry(QRect(330, 10, 230, 41))
+        self.sendfishButton.setStyleSheet(
             'font: 600 18pt "Times New Roman";\n'
-            "background-color: #FF6666;\n"
+            "background-color: #FE9F06;\n"
             "border: none;\n"
             "border-radius: 8px;"
         )
@@ -123,8 +123,8 @@ class Ui_MainWindow(object):
         self.pondnameLabel.setText(
             QCoreApplication.translate("MainWindow", "Pond DC Universe ", None)
         )
-        self.removefishButton.setText(
-            QCoreApplication.translate("MainWindow", "Remove Fish", None)
+        self.sendfishButton.setText(
+            QCoreApplication.translate("MainWindow", "Send Fish", None)
         )
         self.addfishButton.setText(
             QCoreApplication.translate("MainWindow", "Add Fish", None)

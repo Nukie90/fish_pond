@@ -16,7 +16,7 @@ class PondWindow(QMainWindow):
     def setup_connections(self):
         self.ui.connectButton.clicked.connect(self.handle_mqtt_connection)
         self.ui.addfishButton.clicked.connect(self.handle_add_fish)
-        self.ui.removefishButton.clicked.connect(self.handle_remove_fish)
+        self.ui.sendfishButton.clicked.connect(self.handle_send_fish)
 
     def handle_mqtt_connection(self):
         try:
@@ -28,10 +28,12 @@ class PondWindow(QMainWindow):
 
     def handle_add_fish(self):
         # TODO: Implement add fish functionality
+        print("Add fish")
         pass
 
-    def handle_remove_fish(self):
-        # TODO: Implement remove fish functionality
+    def handle_send_fish(self):
+        # TODO: Implement send fish functionality
+        print("Send fish")
         pass
 
     def closeEvent(self, event):
