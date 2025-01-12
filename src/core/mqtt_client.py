@@ -13,7 +13,7 @@ class MqttClient:
         self.group_name = MQTT_CONFIG["GROUP_NAME"]
         self.hello_topic = MQTT_CONFIG["HELLO_TOPIC"]
 
-        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1)
+        self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         self.client.username_pw_set(self.username, self.password)
         self.client.on_connect = self._on_connect
         self.client.on_message = self._on_message
@@ -26,7 +26,7 @@ class MqttClient:
         self.client.loop_stop()
         self.client.disconnect()
 
-    def _on_connect(self, client, userdata, flags, rc):
+    def _on_connect(self, client, userdata, flags, rc, properties=None):
         if rc == 0:
             print(f"Connected to MQTT Broker at {self.broker}!")
             self._send_hello_message()
@@ -47,7 +47,7 @@ class MqttClient:
         self.client.publish(self.hello_topic, payload)
         print(f"Sent hello message: {payload}")
 
-    def _on_message(self, client, userdata, message):
+    def _on_message(self, client, userdata, message, properties=None):
         try:
             payload = json.loads(message.payload.decode())
             topic = message.topic
