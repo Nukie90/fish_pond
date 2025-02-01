@@ -126,25 +126,6 @@ class Ui_MainWindow(object):
         self.fashLabel.setFont(font)
         self.fashLabel.setStyleSheet("color:rgb(0, 0, 0)")
 
-        # Add fish info frame
-        self.fishInfoFrame = QFrame(self.centralwidget)
-        self.fishInfoFrame.setObjectName("fishInfoFrame")
-        self.fishInfoFrame.setGeometry(QRect(250, 570, 780, 120))
-        self.fishInfoFrame.setStyleSheet("border: 1px solid black;")
-        self.fishInfoFrame.setFrameShape(QFrame.Shape.StyledPanel)
-        self.fishInfoFrame.setFrameShadow(QFrame.Shadow.Raised)
-
-        # Add fish info text edit
-        self.fishInfoText = QTextEdit(self.fishInfoFrame)
-        self.fishInfoText.setObjectName("fishInfoText")
-        self.fishInfoText.setGeometry(QRect(10, 10, 760, 100))
-        font = QFont()
-        font.setFamilies(["Times New Roman"])
-        font.setPointSize(12)
-        self.fishInfoText.setFont(font)
-        self.fishInfoText.setStyleSheet("color:rgb(0, 0, 0); border: none;")
-        self.fishInfoText.setReadOnly(True)
-
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -172,6 +153,5 @@ class Ui_MainWindow(object):
         self.fashLabel.setText(
             QCoreApplication.translate("MainWindow", "Fishes: 0", None)
         )
-        self.fishInfoText.setText("Fish List:\nNo fish in the pond")
 
     # retranslateUi

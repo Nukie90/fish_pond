@@ -7,7 +7,6 @@ import uuid
 @dataclass
 class Fish:
     name: str = field(default_factory=lambda: str(uuid.uuid4()))
-    spawn_time: datetime = field(default_factory=datetime.now)
     group_name: str = ""
     lifetime: int = 15
     data: str = "https://drive.google.com/uc?id=1qkGAxmmiL6AQMXi5ssArBk-7RoqtD7U3"
@@ -15,8 +14,7 @@ class Fish:
     @property
     def remaining_lifetime(self) -> float:
         """Calculate remaining lifetime in seconds"""
-        elapsed = (datetime.now() - self.spawn_time).total_seconds()
-        return max(0, self.lifetime - elapsed)
+        return max(0, self.lifetime - 1)
 
     @property
     def is_alive(self) -> bool:

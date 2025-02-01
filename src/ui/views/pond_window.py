@@ -1,52 +1,150 @@
-from PySide6.QtWidgets import QMainWindow
-from PySide6.QtCore import QPoint, QTimer
+from tkinter import *
 import random
 from datetime import datetime
-from ui.generated.pond_ui import Ui_MainWindow
+import json
 from core.mqtt_client import MqttClient
 from core.pond import Pond, Fish
 from ui.widgets.fish_widget import FishWidget
+from PIL import Image, ImageTk
+import os
 
 
-class PondWindow(QMainWindow):
+class PondWindow:
     def __init__(self):
-        super().__init__()
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
+        self.root = Tk()
+        self.root.title("Fish Pond")
+        self.root.geometry("1080x720")
+        self.root.configure(bg="#FAFAFA")
 
+        # Initialize core components
         self.mqtt_client = MqttClient()
+        self.mqtt_client.pond_window = self
         self.pond = Pond(name="DC Universe")
         self.fish_widgets = {}
-        self.ui.sendfishButton.setEnabled(False)
 
-        self.connect_button_timer = QTimer(self)
-        self.connect_button_timer.timeout.connect(self.reset_connect_button)
-        self.connect_button_timer.setSingleShot(True)
+        # Load pond background image
+        self.pond_bg_image = None  # Initialize as None
+        self.load_pond_background()
 
-        # Set up MQTT callback for receiving fish
-        self.mqtt_client.set_new_fish_callback(self.handle_received_fish)
-
+        self.setup_ui()
         self.setup_connections()
 
+    def load_pond_background(self):
+        """Load the pond background image"""
+        try:
+            # Get the path relative to this file
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            image_path = os.path.join(current_dir, "pond.png")
+
+            # Load and resize image to fit the main frame
+            image = Image.open(image_path)
+            image = image.resize((771, 341))
+            self.pond_bg_image = ImageTk.PhotoImage(image)
+        except Exception as e:
+            print(f"Failed to load pond background: {e}")
+
+    def setup_ui(self):
+        """Setup the UI components"""
+        # Pond name label
+        self.pond_name_label = Label(
+            self.root,
+            text="Pond DC Universe",
+            font=("Times New Roman", 36, "bold"),
+            bg="#FAFAFA",
+            fg="black",
+        )
+        self.pond_name_label.place(x=300, y=30, width=480, height=41)
+
+        # Main pond frame
+        self.main_frame = Frame(
+            self.root, bg="#F5F5F5", highlightbackground="black", highlightthickness=1
+        )
+        self.main_frame.place(x=159, y=110, width=771, height=341)
+
+        # Add pond background image
+        if self.pond_bg_image:
+            self.pond_bg_label = Label(
+                self.main_frame, image=self.pond_bg_image, bg="#F5F5F5"
+            )
+            self.pond_bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+
+        # Buttons frame
+        self.buttons_frame = Frame(
+            self.root, bg="#FAFAFA", highlightbackground="black", highlightthickness=1
+        )
+        self.buttons_frame.place(x=100, y=480, width=880, height=61)
+
+        # Add Fish button
+        self.add_fish_button = Button(
+            self.buttons_frame,
+            text="Add Fish",
+            font=("Times New Roman", 18, "bold"),
+            bg="#66CC99",
+            fg="black",
+            bd=0,
+            command=self.handle_add_fish,
+        )
+        self.add_fish_button.place(x=60, y=10, width=230, height=41)
+
+        # Send Fish button
+        self.send_fish_button = Button(
+            self.buttons_frame,
+            text="Send Fish",
+            font=("Times New Roman", 18, "bold"),
+            bg="#FE9F06",
+            fg="black",
+            bd=0,
+            command=self.handle_send_fish,
+            state="disabled",
+        )
+        self.send_fish_button.place(x=330, y=10, width=230, height=41)
+
+        # Connect button
+        self.connect_button = Button(
+            self.buttons_frame,
+            text="Connect to MQTT",
+            font=("Times New Roman", 18, "bold"),
+            bg="#B0AFE6",
+            fg="black",
+            bd=0,
+            command=self.handle_mqtt_connection,
+        )
+        self.connect_button.place(x=600, y=10, width=230, height=41)
+
+        # Fish count frame
+        self.count_frame = Frame(
+            self.root, bg="#FAFAFA", highlightbackground="black", highlightthickness=1
+        )
+        self.count_frame.place(x=50, y=639, width=161, height=51)
+
+        # Fish count label
+        self.fish_count_label = Label(
+            self.count_frame,
+            text="Fish Count: 0",
+            font=("Times New Roman", 18),
+            bg="#FAFAFA",
+            fg="black",
+        )
+        self.fish_count_label.place(x=20, y=10)
+
     def setup_connections(self):
-        self.ui.connectButton.clicked.connect(self.handle_mqtt_connection)
-        self.ui.addfishButton.clicked.connect(self.handle_add_fish)
-        self.ui.sendfishButton.clicked.connect(self.handle_send_fish)
+        """Setup event handlers"""
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def handle_mqtt_connection(self):
+        """Handle MQTT connection"""
         try:
             self.mqtt_client.connect()
-            self.ui.connectButton.setEnabled(False)
-            self.ui.connectButton.setText("Connected")
-            self.ui.sendfishButton.setEnabled(True)
+            self.connect_button.configure(state="disabled", text="Connected")
+            self.send_fish_button.configure(state="normal")
         except Exception as e:
             print(f"Failed to connect: {e}")
-            self.ui.connectButton.setText("Failed")
-            self.connect_button_timer.start(3000)
+            self.connect_button.configure(text="Failed")
+            self.root.after(3000, self.reset_connect_button)
 
     def reset_connect_button(self):
         """Reset connect button text after failed connection"""
-        self.ui.connectButton.setText("Connect to MQTT")
+        self.connect_button.configure(text="Connect to MQTT")
 
     def handle_add_fish(self):
         """Handle adding a new fish to the pond"""
@@ -54,26 +152,22 @@ class PondWindow(QMainWindow):
         self.create_fish_widget(fish)
         print(f"Added fish with name: {fish.name}, lifetime: {fish.lifetime} seconds")
 
-    def handle_received_fish(
-        self,
-        group_name: str,
-        lifetime: int,
-        data: str,
-        name: str = "",
-    ):
+    def handle_received_fish(self, message):
         """Handle receiving a fish from another pond"""
         try:
+            data = json.loads(message.payload)
+            print(data)
+
             fish = Fish(
-                name=name,
-                spawn_time=datetime.now(),
-                group_name=group_name,
-                lifetime=lifetime,
-                data=data,
+                name=data["name"],
+                group_name=data["group_name"],
+                lifetime=data["lifetime"],
+                data=data["data"],
             )
 
             self.pond.fishes[fish.name] = fish
             self.create_fish_widget(fish)
-            fish_info = f"Received fish from {group_name}, name: {name}, lifetime: {lifetime} seconds"
+            fish_info = f"Received fish from {data['group_name']}, name: {data['name']}, lifetime: {data['lifetime']} seconds"
             print(fish_info)
 
         except Exception as e:
@@ -109,46 +203,32 @@ class PondWindow(QMainWindow):
 
     def create_fish_widget(self, fish: Fish):
         """Create and setup a fish widget"""
-        fish_widget = FishWidget(self.ui.mainFrame, self, fish)
+        # If we have a background image, make fish widget parent the main_frame
+        parent = self.main_frame
+        fish_widget = FishWidget(parent, self, fish)
 
         # Random position within the pond frame
-        x = random.randint(0, self.ui.mainFrame.width() - fish_widget.width())
-        y = random.randint(0, self.ui.mainFrame.height() - fish_widget.height())
-        fish_widget.move(QPoint(x, y))
+        x = random.randint(0, self.main_frame.winfo_width() - 200)
+        y = random.randint(0, self.main_frame.winfo_height() - 200)
+        fish_widget.place(x=x, y=y)
+        fish_widget.lift()
 
         # Start lifetime countdown
         remaining_lifetime = fish.remaining_lifetime
         if remaining_lifetime > 0:
             fish_widget.start_lifetime(int(remaining_lifetime))
-            fish_widget.show()
 
             # Store reference to widget
             self.fish_widgets[fish.name] = fish_widget
             self.update_fish_label()
-            self.update_fish_info()
         else:
-            fish_widget.deleteLater()
+            fish_widget.destroy()
 
-    def update_fish_info(self, fish_widget: FishWidget = None):
-        """Update the fish information display"""
-        if not self.fish_widgets:
-            self.ui.fishInfoText.setText("Fish List:\nNo fish in the pond")
-            return
+    def update_fish_label(self):
+        """Update the fish count label in the UI"""
+        self.fish_count_label.configure(text=f"Fish Count: {len(self.fish_widgets)}")
 
-        info_text = "Fish List:\n"
-        for name, widget in self.fish_widgets.items():
-            if widget.fish:
-                fish = widget.fish
-                line = f"Name: {fish.name} | Lifetime: {widget.remaining_lifetime}s | "
-                if fish.group_name != self.pond.name:
-                    line += f"From: {fish.group_name}"
-                else:
-                    line += "Our fish"
-                info_text += line + "\n"
-
-        self.ui.fishInfoText.setText(info_text)
-
-    def remove_fish_by_widget(self, fish_widget: FishWidget):
+    def remove_fish_by_widget(self, fish_widget):
         """Remove fish from pond and UI when its lifetime ends"""
         fish_id_to_remove = None
 
@@ -161,12 +241,12 @@ class PondWindow(QMainWindow):
             self.fish_widgets.pop(fish_id_to_remove, None)
             self.pond.fishes.pop(fish_id_to_remove, None)
             self.update_fish_label()
-            self.update_fish_info()
 
-    def update_fish_label(self):
-        """Update the fish count label in the UI"""
-        self.ui.fashLabel.setText(f"Fish Count: {len(self.fish_widgets)}")
-
-    def closeEvent(self, event):
+    def on_closing(self):
+        """Handle window closing"""
         self.mqtt_client.disconnect()
-        super().closeEvent(event)
+        self.root.destroy()
+
+    def run(self):
+        """Start the application"""
+        self.root.mainloop()

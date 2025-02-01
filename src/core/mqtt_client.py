@@ -19,7 +19,6 @@ class MqttClient:
         self.our_fish_topic = MQTT_CONFIG["OUR_FISH_TOPIC"]
 
         self._connected = False
-        self.on_new_fish_callback: Callable = None
 
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         self.client.username_pw_set(self.username, self.password)
@@ -29,10 +28,6 @@ class MqttClient:
     def is_connected(self) -> bool:
         """Check if connected to MQTT broker"""
         return self._connected
-
-    def set_new_fish_callback(self, callback: Callable):
-        """Set callback for handling new fish from other ponds"""
-        self.on_new_fish_callback = callback
 
     def connect(self):
         self.client.connect(self.broker, self.port)
@@ -71,34 +66,16 @@ class MqttClient:
         self.client.publish(self.hello_topic, payload)
         print(f"Sent hello message: {payload}")
 
-    def _on_message(self, client, userdata, message, properties=None):
+    def _on_message(self, client, userdata, message):
+        """Handle incoming MQTT messages"""
         try:
-            payload = json.loads(message.payload.decode())
-            topic = message.topic
-
-            match topic:
-                case self.hello_topic:
-                    print(
-                        f"New pond registered: {payload['type']}, {payload['sender']}, {payload['timestamp']}"
-                    )
-                    if payload["sender"] != self.group_name:
-                        self.client.subscribe(f"user/{payload['sender']}", 0)
-
-                case self.our_fish_topic:
-                    print(
-                        f"Received fish: {payload['name']} from {payload['group_name']}, lifetime: {payload['lifetime']}"
-                    )
-
-                    if self.on_new_fish_callback:
-                        self.on_new_fish_callback(
-                            name=payload.get("name", ""),
-                            group_name=payload["group_name"],
-                            lifetime=payload["lifetime"],
-                            data=payload["data"],
-                        )
+            if message.topic == self.our_fish_topic:
+                # Forward message directly to pond window
+                if hasattr(self, "pond_window"):
+                    self.pond_window.handle_received_fish(message)
 
         except Exception as e:
-            print(f"Error processing message: {e}")
+            print(f"Error handling message: {e}")
 
     def send_fish(
         self, name: str, group_name: str, lifetime: int, send_to: str, data: str
