@@ -5,6 +5,7 @@ from config.settings import MQTT_CONFIG
 from typing import Callable
 import base64
 from pathlib import Path
+import os
 
 
 class MqttClient:
@@ -24,10 +25,6 @@ class MqttClient:
         self.client.username_pw_set(self.username, self.password)
         self.client.on_connect = self._on_connect
         self.client.on_message = self._on_message
-
-        gif_path = Path(__file__).parent.parent / "ui/resources/images/DC_Universe.gif"
-        with open(gif_path, "rb") as gif_file:
-            self.fish_gif_base64 = base64.b64encode(gif_file.read()).decode("utf-8")
 
     def is_connected(self) -> bool:
         """Check if connected to MQTT broker"""
@@ -91,30 +88,27 @@ class MqttClient:
                     print(
                         f"Received fish: {payload['name']} from {payload['group_name']}, lifetime: {payload['lifetime']}"
                     )
-                    # Extract GIF data if present
-                    data = payload.get("data", "")
 
                     if self.on_new_fish_callback:
                         self.on_new_fish_callback(
                             name=payload.get("name", ""),
                             group_name=payload["group_name"],
                             lifetime=payload["lifetime"],
-                            data=data,
+                            data=payload["data"],
                         )
-
-                case _ if "/spawn" in topic:
-                    print(f"Fish spawned in {payload['group_name']}")
 
         except Exception as e:
             print(f"Error processing message: {e}")
 
-    def send_fish(self, name: str, group_name: str, lifetime: int, send_to: str):
+    def send_fish(
+        self, name: str, group_name: str, lifetime: int, send_to: str, data: str
+    ):
         """Send a fish to another pond"""
         message = {
             "name": name,
             "group_name": group_name,
             "lifetime": lifetime,
-            "data": self.fish_gif_base64,
+            "data": data,
         }
 
         topic = f"user/{send_to}"

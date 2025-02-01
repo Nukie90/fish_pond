@@ -6,8 +6,6 @@ from ui.generated.pond_ui import Ui_MainWindow
 from core.mqtt_client import MqttClient
 from core.pond import Pond, Fish
 from ui.widgets.fish_widget import FishWidget
-from pathlib import Path
-import base64
 
 
 class PondWindow(QMainWindow):
@@ -60,8 +58,8 @@ class PondWindow(QMainWindow):
         self,
         group_name: str,
         lifetime: int,
+        data: str,
         name: str = "",
-        data: str = "",
     ):
         """Handle receiving a fish from another pond"""
         try:
@@ -70,18 +68,8 @@ class PondWindow(QMainWindow):
                 spawn_time=datetime.now(),
                 group_name=group_name,
                 lifetime=lifetime,
+                data=data,
             )
-
-            if data:
-                gif_path = Path(__file__).parent.parent / "resources/images/temp"
-                gif_path.mkdir(exist_ok=True, parents=True)
-                temp_gif = gif_path / f"{group_name}.gif"
-
-                gif_bytes = base64.b64decode(data)
-                with open(temp_gif, "wb") as f:
-                    f.write(gif_bytes)
-
-                fish.gif_path = str(temp_gif)
 
             self.pond.fishes[fish.name] = fish
             self.create_fish_widget(fish)
@@ -111,6 +99,7 @@ class PondWindow(QMainWindow):
                 group_name=self.pond.name,
                 lifetime=fish.lifetime,
                 send_to=send_to,
+                data=fish.data,
             )
 
             self.fish_widgets[name].die()

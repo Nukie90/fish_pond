@@ -10,6 +10,7 @@ class Fish:
     spawn_time: datetime = field(default_factory=datetime.now)
     group_name: str = ""
     lifetime: int = 15
+    data: str = "https://drive.google.com/uc?id=1qkGAxmmiL6AQMXi5ssArBk-7RoqtD7U3"
 
     @property
     def remaining_lifetime(self) -> float:
