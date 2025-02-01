@@ -9,7 +9,9 @@ class FishWidget(QLabel):
         super().__init__(parent)
         self.setFixedSize(QSize(200, 200))
 
-        gif_path = str(Path(__file__).parent.parent / "resources/images/fish.gif")
+        gif_path = str(
+            Path(__file__).parent.parent / "resources/images/DC_Universe.gif"
+        )
         self.movie = QMovie(gif_path)
         self.setMovie(self.movie)
 
