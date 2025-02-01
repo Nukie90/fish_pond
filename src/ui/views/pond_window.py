@@ -1,11 +1,13 @@
 from PySide6.QtWidgets import QMainWindow
-from PySide6.QtCore import QPoint
+from PySide6.QtCore import QPoint, QTimer
 import random
 from datetime import datetime
 from ui.generated.pond_ui import Ui_MainWindow
 from core.mqtt_client import MqttClient
 from core.pond import Pond, Fish
 from ui.widgets.fish_widget import FishWidget
+from pathlib import Path
+import base64
 
 
 class PondWindow(QMainWindow):
@@ -17,6 +19,11 @@ class PondWindow(QMainWindow):
         self.mqtt_client = MqttClient()
         self.pond = Pond(name="DC Universe")
         self.fish_widgets = {}
+        self.ui.sendfishButton.setEnabled(False)
+
+        self.connect_button_timer = QTimer(self)
+        self.connect_button_timer.timeout.connect(self.reset_connect_button)
+        self.connect_button_timer.setSingleShot(True)
 
         # Set up MQTT callback for receiving fish
         self.mqtt_client.set_new_fish_callback(self.handle_received_fish)
@@ -33,8 +40,15 @@ class PondWindow(QMainWindow):
             self.mqtt_client.connect()
             self.ui.connectButton.setEnabled(False)
             self.ui.connectButton.setText("Connected")
+            self.ui.sendfishButton.setEnabled(True)
         except Exception as e:
             print(f"Failed to connect: {e}")
+            self.ui.connectButton.setText("Failed")
+            self.connect_button_timer.start(3000)
+
+    def reset_connect_button(self):
+        """Reset connect button text after failed connection"""
+        self.ui.connectButton.setText("Connect to MQTT")
 
     def handle_add_fish(self):
         """Handle adding a new fish to the pond"""
@@ -47,6 +61,7 @@ class PondWindow(QMainWindow):
         group_name: str,
         lifetime: int,
         name: str = "",
+        data: str = "",
     ):
         """Handle receiving a fish from another pond"""
         try:
@@ -57,7 +72,18 @@ class PondWindow(QMainWindow):
                 lifetime=lifetime,
             )
 
-            self.pond.fishes[fish.fish_id] = fish
+            if data:
+                gif_path = Path(__file__).parent.parent / "resources/images/temp"
+                gif_path.mkdir(exist_ok=True, parents=True)
+                temp_gif = gif_path / f"{group_name}.gif"
+
+                gif_bytes = base64.b64decode(data)
+                with open(temp_gif, "wb") as f:
+                    f.write(gif_bytes)
+
+                fish.gif_path = str(temp_gif)
+
+            self.pond.fishes[fish.name] = fish
             self.create_fish_widget(fish)
             fish_info = f"Received fish from {group_name}, name: {name}, lifetime: {lifetime} seconds"
             print(fish_info)
@@ -67,8 +93,12 @@ class PondWindow(QMainWindow):
 
     def handle_send_fish(self):
         """Handle sending a fish to another pond"""
+        if not self.mqtt_client.is_connected():
+            print("Cannot send fish: Not connected to MQTT broker")
+            return
+
         try:
-            send_to = "Parallel"
+            send_to = "DC_Universe2"
 
             if not self.pond.fishes:
                 print("No fish available to send!")
@@ -77,17 +107,14 @@ class PondWindow(QMainWindow):
             name, fish = random.choice(list(self.pond.fishes.items()))
 
             self.mqtt_client.send_fish(
-                send_to=send_to,
                 name=name,
                 group_name=self.pond.name,
                 lifetime=fish.lifetime,
+                send_to=send_to,
             )
 
             self.fish_widgets[name].die()
             print(f"Sent fish with name: {name} to {send_to}")
-
-        except IndexError:
-            print("No fish available to send!")
         except Exception as e:
             print(f"Failed to send fish: {e}")
 

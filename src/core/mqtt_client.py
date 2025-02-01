@@ -3,6 +3,8 @@ import time
 import paho.mqtt.client as mqtt
 from config.settings import MQTT_CONFIG
 from typing import Callable
+import base64
+from pathlib import Path
 
 
 class MqttClient:
@@ -15,13 +17,21 @@ class MqttClient:
         self.hello_topic = MQTT_CONFIG["HELLO_TOPIC"]
         self.our_fish_topic = MQTT_CONFIG["OUR_FISH_TOPIC"]
 
-        # Callback for handling new fish
+        self._connected = False
         self.on_new_fish_callback: Callable = None
 
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         self.client.username_pw_set(self.username, self.password)
         self.client.on_connect = self._on_connect
         self.client.on_message = self._on_message
+
+        gif_path = Path(__file__).parent.parent / "ui/resources/images/DC_Universe.gif"
+        with open(gif_path, "rb") as gif_file:
+            self.fish_gif_base64 = base64.b64encode(gif_file.read()).decode("utf-8")
+
+    def is_connected(self) -> bool:
+        """Check if connected to MQTT broker"""
+        return self._connected
 
     def set_new_fish_callback(self, callback: Callable):
         """Set callback for handling new fish from other ponds"""
@@ -32,14 +42,15 @@ class MqttClient:
         self.client.loop_start()
 
     def disconnect(self):
+        self._connected = False
         self.client.loop_stop()
         self.client.disconnect()
 
     def _on_connect(self, client, userdata, flags, rc, properties=None):
         if rc == 0:
             print(f"Connected to MQTT Broker at {self.broker}!")
+            self._connected = True
             self._send_hello_message()
-            # Subscribe to all pond topics
             self.client.subscribe(
                 [
                     ("fishhaven/stream", 0),
@@ -48,6 +59,7 @@ class MqttClient:
             )
         else:
             print(f"Failed to connect, return code {rc}")
+            self._connected = False
 
     def _send_hello_message(self):
         message = {
@@ -79,11 +91,15 @@ class MqttClient:
                     print(
                         f"Received fish: {payload['name']} from {payload['group_name']}, lifetime: {payload['lifetime']}"
                     )
+                    # Extract GIF data if present
+                    data = payload.get("data", "")
+
                     if self.on_new_fish_callback:
                         self.on_new_fish_callback(
                             name=payload.get("name", ""),
                             group_name=payload["group_name"],
                             lifetime=payload["lifetime"],
+                            data=data,
                         )
 
                 case _ if "/spawn" in topic:
@@ -98,10 +114,13 @@ class MqttClient:
             "name": name,
             "group_name": group_name,
             "lifetime": lifetime,
+            "data": self.fish_gif_base64,
         }
 
         topic = f"user/{send_to}"
         payload = json.dumps(message)
         print(f"Sending fish to topic: {topic}")
-        print(f"Payload: {payload}")
+        print(
+            f"Payload: {message['name']} {message['group_name']} {message['lifetime']}"
+        )
         self.client.publish(topic, payload)

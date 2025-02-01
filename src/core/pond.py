@@ -28,13 +28,11 @@ class Pond:
     name: str
     fishes: Dict[str, Fish] = field(default_factory=dict)
     connected_ponds: List[str] = field(default_factory=list)
-    fish_lifetime: int = 15
 
     def add_fish(self) -> Fish:
         """Create and add a new fish to the pond"""
         fish = Fish(
             group_name=self.name,
-            lifetime=self.fish_lifetime,
         )
         self.fishes[fish.name] = fish
         return fish
