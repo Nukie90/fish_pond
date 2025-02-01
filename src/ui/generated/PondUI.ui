@@ -20,10 +20,10 @@
    <widget class="QLabel" name="pondnameLabel">
     <property name="geometry">
      <rect>
-      <x>300</x>
+      <x>350</x>
       <y>30</y>
-      <width>480</width>
-      <height>41</height>
+      <width>381</width>
+      <height>51</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -34,15 +34,15 @@ color: rgb(0, 0, 0);</string>
      <string>Pond DC Universe </string>
     </property>
     <property name="alignment">
-     <set>Qt::AlignmentFlag::AlignCenter</set>
+     <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
     </property>
    </widget>
    <widget class="QFrame" name="buttonsFrame">
     <property name="geometry">
      <rect>
-      <x>100</x>
+      <x>219</x>
       <y>480</y>
-      <width>880</width>
+      <width>650</width>
       <height>61</height>
      </rect>
     </property>
@@ -50,36 +50,14 @@ color: rgb(0, 0, 0);</string>
      <string notr="true">border: 1px solid black;</string>
     </property>
     <property name="frameShape">
-     <enum>QFrame::Shape::StyledPanel</enum>
+     <enum>QFrame::NoFrame</enum>
     </property>
-    <property name="frameShadow">
-     <enum>QFrame::Shadow::Raised</enum>
-    </property>
-    <widget class="QPushButton" name="sendfishButton">
-     <property name="geometry">
-      <rect>
-       <x>330</x>
-       <y>10</y>
-       <width>230</width>
-       <height>41</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">font: 600 18pt &quot;Times New Roman&quot;;
-background-color: #FE9F06;
-border: none;
-border-radius: 8px;</string>
-     </property>
-     <property name="text">
-      <string>Send Fish</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="addfishButton">
      <property name="geometry">
       <rect>
-       <x>60</x>
+       <x>50</x>
        <y>10</y>
-       <width>230</width>
+       <width>250</width>
        <height>41</height>
       </rect>
      </property>
@@ -96,9 +74,9 @@ border-radius: 8px;</string>
     <widget class="QPushButton" name="connectButton">
      <property name="geometry">
       <rect>
-       <x>600</x>
+       <x>350</x>
        <y>10</y>
-       <width>230</width>
+       <width>250</width>
        <height>41</height>
       </rect>
      </property>
@@ -124,14 +102,11 @@ border-radius: 8px;</string>
     </property>
     <property name="styleSheet">
      <string notr="true">background-color: #F5F5F5;
-image: url(:/pond/Asset/pond.png);
+image: url(:/pond/images/pond.png);
 border: 1px solid black;</string>
     </property>
     <property name="frameShape">
-     <enum>QFrame::Shape::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Shadow::Raised</enum>
+     <enum>QFrame::NoFrame</enum>
     </property>
    </widget>
    <widget class="QFrame" name="frame">
@@ -147,10 +122,7 @@ border: 1px solid black;</string>
      <string notr="true">border: 1px solid black;</string>
     </property>
     <property name="frameShape">
-     <enum>QFrame::Shape::StyledPanel</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Shadow::Raised</enum>
+     <enum>QFrame::NoFrame</enum>
     </property>
     <widget class="QLabel" name="fashLabel">
      <property name="geometry">
@@ -171,14 +143,65 @@ border: 1px solid black;</string>
       <string notr="true">color:rgb(0, 0, 0)</string>
      </property>
      <property name="text">
-      <string>Fishes: 0</string>
+      <string>Fish: 0</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="sendFrame">
+    <property name="geometry">
+     <rect>
+      <x>219</x>
+      <y>560</y>
+      <width>651</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border: 1px solid black;</string>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::NoFrame</enum>
+    </property>
+    <widget class="QPushButton" name="sendfishButton">
+     <property name="geometry">
+      <rect>
+       <x>60</x>
+       <y>10</y>
+       <width>230</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font: 600 18pt &quot;Times New Roman&quot;;
+background-color: #FE9F06;
+border: none;
+border-radius: 8px;</string>
+     </property>
+     <property name="text">
+      <string>Send Fish</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="groupselectionbox">
+     <property name="geometry">
+      <rect>
+       <x>350</x>
+       <y>10</y>
+       <width>250</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font: 600 18pt &quot;Times New Roman&quot;;
+background-color: #e6e6e6;
+border: none;
+border-radius: 8px;</string>
      </property>
     </widget>
    </widget>
   </widget>
  </widget>
  <resources>
-  <include location="resources.qrc"/>
+  <include location="../resources/resources.qrc"/>
  </resources>
  <connections/>
 </ui>
