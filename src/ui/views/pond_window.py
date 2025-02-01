@@ -94,9 +94,19 @@ class PondWindow(QMainWindow):
             print(f"Failed to connect: {e}")
 
     def handle_send_fish(self):
-        # TODO: Implement send fish functionality
-        print("Send fish")
-        pass
+        try:
+            send_to = "Parallel"
+            # Pick a random fish to send
+            fish_id, fish = random.choice(list(self.pond.fishes.items()))
+            self.mqtt_client.send_fish(
+                group_name=fish.group_name,
+                name=fish_id,
+                lifetime=fish.lifetime,
+                send_to=send_to,
+            )
+            print(f"Sent fish with ID: {fish_id} to {send_to}")
+        except Exception as e:
+            print(f"Failed to send fish: {e}")
 
     def closeEvent(self, event):
         self.mqtt_client.disconnect()
