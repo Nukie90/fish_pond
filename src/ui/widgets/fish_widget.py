@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 class FishWidget(QLabel):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, pond=None, fish_id=None):
         super().__init__(parent)
         self.setFixedSize(QSize(200, 200))
 
@@ -19,6 +19,9 @@ class FishWidget(QLabel):
 
         self.lifetime_timer = QTimer(self)
         self.lifetime_timer.timeout.connect(self.check_lifetime)
+        
+        self.pond = pond
+        self.fish_id = fish_id
 
     def start_lifetime(self, seconds: int):
         """Start the lifetime countdown"""
@@ -36,4 +39,9 @@ class FishWidget(QLabel):
         self.lifetime_timer.stop()
         self.movie.stop()
         self.hide()
+        
+        if self.pond:
+            self.pond.remove_fish_by_widget(self)
+
         self.deleteLater()
+

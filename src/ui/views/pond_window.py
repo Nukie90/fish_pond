@@ -30,7 +30,7 @@ class PondWindow(QMainWindow):
 
     def create_fish_widget(self, fish: Fish):
         """Create and setup a fish widget"""
-        fish_widget = FishWidget(self.ui.mainFrame)
+        fish_widget = FishWidget(self.ui.mainFrame, self, fish.fish_id)
 
         # Random position within the pond frame
         x = random.randint(0, self.ui.mainFrame.width() - fish_widget.width())
@@ -45,6 +45,8 @@ class PondWindow(QMainWindow):
 
             # Store reference to widget
             self.fish_widgets[fish.fish_id] = fish_widget
+            
+            self.update_fish_label()
         else:
             fish_widget.deleteLater()
 
@@ -92,10 +94,41 @@ class PondWindow(QMainWindow):
             print(f"Failed to connect: {e}")
 
     def handle_send_fish(self):
-        # TODO: Implement send fish functionality
-        print("Send fish")
-        pass
+        try:
+            send_to = "Parallel"
+            # Pick a random fish to send
+            fish_id, fish = random.choice(list(self.pond.fishes.items()))
+            self.mqtt_client.send_fish(
+                group_name=fish.group_name,
+                name=fish_id,
+                lifetime=fish.lifetime,
+                send_to=send_to,
+            )
+            print(f"Sent fish with ID: {fish_id} to {send_to}")
+        except Exception as e:
+            print(f"Failed to send fish: {e}")
 
     def closeEvent(self, event):
         self.mqtt_client.disconnect()
         super().closeEvent(event)
+        
+    def remove_fish_by_widget(self, fish_widget: FishWidget):
+        """Remove fish from pond and UI when its lifetime ends"""
+        fish_id_to_remove = None
+
+        # Find the fish ID associated with the widget
+        for fish_id, widget in self.fish_widgets.items():
+            if widget == fish_widget:
+                fish_id_to_remove = fish_id
+                break
+
+        if fish_id_to_remove:
+            self.fish_widgets.pop(fish_id_to_remove, None)  # Remove from dict
+            self.pond.fishes.pop(fish_id_to_remove, None)   # Remove from pond data
+            self.update_fish_label()  # Update UI
+
+    def update_fish_label(self):
+        """Update the fish count label in the UI"""
+        self.ui.fashLabel.setText(f"Fish Count: {len(self.fish_widgets)}")
+        print(f"Fish Count: {len(self.fish_widgets)}")
+

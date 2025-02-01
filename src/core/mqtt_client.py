@@ -13,6 +13,7 @@ class MqttClient:
         self.password = MQTT_CONFIG["PASSWORD"]
         self.group_name = MQTT_CONFIG["GROUP_NAME"]
         self.hello_topic = MQTT_CONFIG["HELLO_TOPIC"]
+        self.our_fish_topic = MQTT_CONFIG["OUR_FISH_TOPIC"]
 
         # Callback for handling new fish
         self.on_new_fish_callback: Callable = None
@@ -42,8 +43,7 @@ class MqttClient:
             self.client.subscribe(
                 [
                     ("fishhaven/stream", 0),
-                    ("pond/+/spawn", 0),
-                    (f"pond/{self.group_name}/fish", 0),
+                    ("user/DC_Universe", 0),
                 ]
             )
         else:
@@ -74,31 +74,31 @@ class MqttClient:
                 if payload["sender"] != self.group_name:
                     self.client.subscribe(f"pond/{payload['sender']}/fish", 0)
 
-            elif "/fish" in topic and self.on_new_fish_callback:
-                # Handle incoming fish from other ponds
-                self.on_new_fish_callback(
-                    group_name=payload["group_name"],
-                    name=payload.get("name", ""),
-                    lifetime=payload.get("lifetime", 15),
-                )
-
+            elif topic == self.our_fish_topic:
+                print(f"Received fish: {payload['name']}, {payload['group_name']}, {payload['lifetime']}")
+                # if self.on_new_fish_callback:
+                #     self.on_new_fish_callback(
+                #         payload["group_name"],
+                #         payload["lifetime"],
+                #         payload["name"],
+                #     ) 
+                        
             elif "/spawn" in topic:
                 print(f"Fish spawned in {payload['group_name']}")
 
         except Exception as e:
             print(f"Error processing message: {e}")
 
-    def send_fish(
-        self,
-        group_name: str,
-        to_pond: str,
-        name: str = "",
-    ):
+    def send_fish(self, send_to: str, name: str, group_name: str, lifetime: int):
         """Send a fish to another pond"""
         message = {
             "name": name,
             "group_name": group_name,
-            "lifetime": 15,
+            "lifetime": lifetime,
         }
-        topic = f"pond/{to_pond}/fish"
-        self.client.publish(topic, json.dumps(message))
+        
+        topic = f"user/{send_to}"
+        print(topic)
+        payload = json.dumps(message)
+        print(payload)
+        self.client.publish(topic, payload)
