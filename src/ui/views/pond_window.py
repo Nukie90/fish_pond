@@ -28,9 +28,72 @@ class PondWindow(QMainWindow):
         self.ui.addfishButton.clicked.connect(self.handle_add_fish)
         self.ui.sendfishButton.clicked.connect(self.handle_send_fish)
 
+    def handle_mqtt_connection(self):
+        try:
+            self.mqtt_client.connect()
+            self.ui.connectButton.setEnabled(False)
+            self.ui.connectButton.setText("Connected")
+        except Exception as e:
+            print(f"Failed to connect: {e}")
+
+    def handle_add_fish(self):
+        """Handle adding a new fish to the pond"""
+        fish = self.pond.add_fish()
+        self.create_fish_widget(fish)
+        print(f"Added fish with name: {fish.name}, lifetime: {fish.lifetime} seconds")
+
+    def handle_received_fish(
+        self,
+        group_name: str,
+        lifetime: int,
+        name: str = "",
+    ):
+        """Handle receiving a fish from another pond"""
+        try:
+            fish = Fish(
+                name=name,
+                spawn_time=datetime.now(),
+                group_name=group_name,
+                lifetime=lifetime,
+            )
+
+            self.pond.fishes[fish.fish_id] = fish
+            self.create_fish_widget(fish)
+            fish_info = f"Received fish from {group_name}, name: {name}, lifetime: {lifetime} seconds"
+            print(fish_info)
+
+        except Exception as e:
+            print(f"Error handling received fish: {e}")
+
+    def handle_send_fish(self):
+        """Handle sending a fish to another pond"""
+        try:
+            send_to = "Parallel"
+
+            if not self.pond.fishes:
+                print("No fish available to send!")
+                return
+
+            name, fish = random.choice(list(self.pond.fishes.items()))
+
+            self.mqtt_client.send_fish(
+                send_to=send_to,
+                name=name,
+                group_name=self.pond.name,
+                lifetime=fish.lifetime,
+            )
+
+            self.fish_widgets[name].die()
+            print(f"Sent fish with name: {name} to {send_to}")
+
+        except IndexError:
+            print("No fish available to send!")
+        except Exception as e:
+            print(f"Failed to send fish: {e}")
+
     def create_fish_widget(self, fish: Fish):
         """Create and setup a fish widget"""
-        fish_widget = FishWidget(self.ui.mainFrame, self, fish.fish_id)
+        fish_widget = FishWidget(self.ui.mainFrame, self, fish)
 
         # Random position within the pond frame
         x = random.randint(0, self.ui.mainFrame.width() - fish_widget.width())
@@ -44,91 +107,50 @@ class PondWindow(QMainWindow):
             fish_widget.show()
 
             # Store reference to widget
-            self.fish_widgets[fish.fish_id] = fish_widget
-            
+            self.fish_widgets[fish.name] = fish_widget
             self.update_fish_label()
+            self.update_fish_info()
         else:
             fish_widget.deleteLater()
 
-    def handle_add_fish(self):
-        """Handle adding a new fish to the pond"""
-        # Create new fish in the pond
-        fish = self.pond.add_fish()
-        self.create_fish_widget(fish)
-        print(f"Added fish with ID: {fish.fish_id}, lifetime: {fish.lifetime} seconds")
+    def update_fish_info(self, fish_widget: FishWidget = None):
+        """Update the fish information display"""
+        if not self.fish_widgets:
+            self.ui.fishInfoText.setText("Fish List:\nNo fish in the pond")
+            return
 
-    def handle_received_fish(
-        self,
-        group_name: str,
-        lifetime: int,
-        name: str = "",
-    ):
-        """Handle receiving a fish from another pond"""
-        try:
-            # Create new fish with new ID, current spawn time
-            fish = Fish(
-                name=name,
-                spawn_time=datetime.now(),
-                group_name=group_name,
-                lifetime=lifetime,
-            )
+        info_text = "Fish List:\n"
+        for name, widget in self.fish_widgets.items():
+            if widget.fish:
+                fish = widget.fish
+                line = f"Name: {fish.name} | Lifetime: {widget.remaining_lifetime}s | "
+                if fish.group_name != self.pond.name:
+                    line += f"From: {fish.group_name}"
+                else:
+                    line += "Our fish"
+                info_text += line + "\n"
 
-            # Add to pond
-            self.pond.fishes[fish.fish_id] = fish
-            self.create_fish_widget(fish)
-            fish_info = f"Received fish from {group_name}"
-            if name:
-                fish_info += f", name: {name}"
-            fish_info += f", new ID: {fish.fish_id}, lifetime: {lifetime} seconds"
-            print(fish_info)
+        self.ui.fishInfoText.setText(info_text)
 
-        except Exception as e:
-            print(f"Error handling received fish: {e}")
-
-    def handle_mqtt_connection(self):
-        try:
-            self.mqtt_client.connect()
-            self.ui.connectButton.setEnabled(False)
-            self.ui.connectButton.setText("Connected")
-        except Exception as e:
-            print(f"Failed to connect: {e}")
-
-    def handle_send_fish(self):
-        try:
-            send_to = "Parallel"
-            # Pick a random fish to send
-            fish_id, fish = random.choice(list(self.pond.fishes.items()))
-            self.mqtt_client.send_fish(
-                group_name=fish.group_name,
-                name=fish_id,
-                lifetime=fish.lifetime,
-                send_to=send_to,
-            )
-            print(f"Sent fish with ID: {fish_id} to {send_to}")
-        except Exception as e:
-            print(f"Failed to send fish: {e}")
-
-    def closeEvent(self, event):
-        self.mqtt_client.disconnect()
-        super().closeEvent(event)
-        
     def remove_fish_by_widget(self, fish_widget: FishWidget):
         """Remove fish from pond and UI when its lifetime ends"""
         fish_id_to_remove = None
 
-        # Find the fish ID associated with the widget
         for fish_id, widget in self.fish_widgets.items():
             if widget == fish_widget:
                 fish_id_to_remove = fish_id
                 break
 
         if fish_id_to_remove:
-            self.fish_widgets.pop(fish_id_to_remove, None)  # Remove from dict
-            self.pond.fishes.pop(fish_id_to_remove, None)   # Remove from pond data
-            self.update_fish_label()  # Update UI
+            self.fish_widgets.pop(fish_id_to_remove, None)
+            self.pond.fishes.pop(fish_id_to_remove, None)
+            self.update_fish_label()
+            self.update_fish_info()
 
     def update_fish_label(self):
         """Update the fish count label in the UI"""
         self.ui.fashLabel.setText(f"Fish Count: {len(self.fish_widgets)}")
-        print(f"Fish Count: {len(self.fish_widgets)}")
 
+    def closeEvent(self, event):
+        self.mqtt_client.disconnect()
+        super().closeEvent(event)

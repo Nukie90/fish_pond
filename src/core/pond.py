@@ -6,8 +6,7 @@ import uuid
 
 @dataclass
 class Fish:
-    fish_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    name: str = ""
+    name: str = field(default_factory=lambda: str(uuid.uuid4()))
     spawn_time: datetime = field(default_factory=datetime.now)
     group_name: str = ""
     lifetime: int = 15
@@ -34,22 +33,21 @@ class Pond:
     def add_fish(self) -> Fish:
         """Create and add a new fish to the pond"""
         fish = Fish(
-            name="",
             group_name=self.name,
             lifetime=self.fish_lifetime,
         )
-        self.fishes[fish.fish_id] = fish
+        self.fishes[fish.name] = fish
         return fish
 
-    def get_fish(self, fish_id: str) -> Fish:
-        if fish_id in self.fishes:
-            return self.fishes[fish_id]
-        raise ValueError(f"Fish with ID {fish_id} not found in pond")
+    def get_fish(self, name: str) -> Fish:
+        if name in self.fishes:
+            return self.fishes[name]
+        raise ValueError(f"Fish with name {name} not found in pond")
 
-    def remove_fish(self, fish_id: str) -> Fish:
-        if fish_id in self.fishes:
-            return self.fishes.pop(fish_id)
-        raise ValueError(f"Fish with ID {fish_id} not found in pond")
+    def remove_fish(self, name: str) -> Fish:
+        if name in self.fishes:
+            return self.fishes.pop(name)
+        raise ValueError(f"Fish with name {name} not found in pond")
 
     def list_fishes(self) -> List[Fish]:
         return list(self.fishes.values())

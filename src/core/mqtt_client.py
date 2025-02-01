@@ -67,38 +67,41 @@ class MqttClient:
             payload = json.loads(message.payload.decode())
             topic = message.topic
 
-            if topic == self.hello_topic:
-                print(
-                    f"New pond registered: {payload['type']}, {payload['sender']}, {payload['timestamp']}"
-                )
-                if payload["sender"] != self.group_name:
-                    self.client.subscribe(f"pond/{payload['sender']}/fish", 0)
+            match topic:
+                case self.hello_topic:
+                    print(
+                        f"New pond registered: {payload['type']}, {payload['sender']}, {payload['timestamp']}"
+                    )
+                    if payload["sender"] != self.group_name:
+                        self.client.subscribe(f"user/{payload['sender']}", 0)
 
-            elif topic == self.our_fish_topic:
-                print(f"Received fish: {payload['name']}, {payload['group_name']}, {payload['lifetime']}")
-                # if self.on_new_fish_callback:
-                #     self.on_new_fish_callback(
-                #         payload["group_name"],
-                #         payload["lifetime"],
-                #         payload["name"],
-                #     ) 
-                        
-            elif "/spawn" in topic:
-                print(f"Fish spawned in {payload['group_name']}")
+                case self.our_fish_topic:
+                    print(
+                        f"Received fish: {payload['name']} from {payload['group_name']}, lifetime: {payload['lifetime']}"
+                    )
+                    if self.on_new_fish_callback:
+                        self.on_new_fish_callback(
+                            name=payload.get("name", ""),
+                            group_name=payload["group_name"],
+                            lifetime=payload["lifetime"],
+                        )
+
+                case _ if "/spawn" in topic:
+                    print(f"Fish spawned in {payload['group_name']}")
 
         except Exception as e:
             print(f"Error processing message: {e}")
 
-    def send_fish(self, send_to: str, name: str, group_name: str, lifetime: int):
+    def send_fish(self, name: str, group_name: str, lifetime: int, send_to: str):
         """Send a fish to another pond"""
         message = {
             "name": name,
             "group_name": group_name,
             "lifetime": lifetime,
         }
-        
+
         topic = f"user/{send_to}"
-        print(topic)
         payload = json.dumps(message)
-        print(payload)
+        print(f"Sending fish to topic: {topic}")
+        print(f"Payload: {payload}")
         self.client.publish(topic, payload)
