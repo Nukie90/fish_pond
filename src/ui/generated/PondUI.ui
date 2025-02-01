@@ -201,7 +201,7 @@ border-radius: 8px;</string>
   </widget>
  </widget>
  <resources>
-  <include location="../resources/resources.qrc"/>
+  <include location="../resources/resource.qrc"/>
  </resources>
  <connections/>
 </ui>

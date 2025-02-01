@@ -27,20 +27,17 @@ class Ui_MainWindow(object):
         MainWindow.setStyleSheet(u"background-color: #FAFAFA;")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
-        
         self.pondnameLabel = QLabel(self.centralwidget)
         self.pondnameLabel.setObjectName(u"pondnameLabel")
         self.pondnameLabel.setGeometry(QRect(350, 30, 381, 51))
         self.pondnameLabel.setStyleSheet(u"font: 700 36pt \"Times New Roman\";\n"
 "color: rgb(0, 0, 0);")
         self.pondnameLabel.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignVCenter)
-        
         self.buttonsFrame = QFrame(self.centralwidget)
         self.buttonsFrame.setObjectName(u"buttonsFrame")
         self.buttonsFrame.setGeometry(QRect(219, 480, 650, 61))
         self.buttonsFrame.setStyleSheet(u"border: 1px solid black;")
         self.buttonsFrame.setFrameShape(QFrame.NoFrame)
-        
         self.addfishButton = QPushButton(self.buttonsFrame)
         self.addfishButton.setObjectName(u"addfishButton")
         self.addfishButton.setGeometry(QRect(50, 10, 250, 41))
@@ -48,7 +45,6 @@ class Ui_MainWindow(object):
 "background-color: #66CC99;\n"
 "border: none;\n"
 "border-radius: 8px;")
-        
         self.connectButton = QPushButton(self.buttonsFrame)
         self.connectButton.setObjectName(u"connectButton")
         self.connectButton.setGeometry(QRect(350, 10, 250, 41))
@@ -56,20 +52,18 @@ class Ui_MainWindow(object):
 "background-color: #B0AFE6;\n"
 "border: none;\n"
 "border-radius: 8px;")
-        
         self.mainFrame = QFrame(self.centralwidget)
         self.mainFrame.setObjectName(u"mainFrame")
         self.mainFrame.setGeometry(QRect(159, 110, 771, 341))
         self.mainFrame.setStyleSheet(u"background-color: #F5F5F5;\n"
+"image: url(:/pond/images/pond.png);\n"
 "border: 1px solid black;")
         self.mainFrame.setFrameShape(QFrame.NoFrame)
-        
         self.frame = QFrame(self.centralwidget)
         self.frame.setObjectName(u"frame")
         self.frame.setGeometry(QRect(50, 639, 161, 51))
         self.frame.setStyleSheet(u"border: 1px solid black;")
         self.frame.setFrameShape(QFrame.NoFrame)
-        
         self.fashLabel = QLabel(self.frame)
         self.fashLabel.setObjectName(u"fashLabel")
         self.fashLabel.setGeometry(QRect(20, 10, 111, 31))
@@ -78,13 +72,11 @@ class Ui_MainWindow(object):
         font.setPointSize(18)
         self.fashLabel.setFont(font)
         self.fashLabel.setStyleSheet(u"color:rgb(0, 0, 0)")
-        
         self.sendFrame = QFrame(self.centralwidget)
         self.sendFrame.setObjectName(u"sendFrame")
         self.sendFrame.setGeometry(QRect(219, 560, 651, 61))
         self.sendFrame.setStyleSheet(u"border: 1px solid black;")
         self.sendFrame.setFrameShape(QFrame.NoFrame)
-        
         self.sendfishButton = QPushButton(self.sendFrame)
         self.sendfishButton.setObjectName(u"sendfishButton")
         self.sendfishButton.setGeometry(QRect(60, 10, 230, 41))
@@ -92,7 +84,6 @@ class Ui_MainWindow(object):
 "background-color: #FE9F06;\n"
 "border: none;\n"
 "border-radius: 8px;")
-        
         self.groupselectionbox = QComboBox(self.sendFrame)
         self.groupselectionbox.setObjectName(u"groupselectionbox")
         self.groupselectionbox.setGeometry(QRect(350, 10, 250, 41))
@@ -100,10 +91,12 @@ class Ui_MainWindow(object):
 "background-color: #e6e6e6;\n"
 "border: none;\n"
 "border-radius: 8px;")
-        
         MainWindow.setCentralWidget(self.centralwidget)
+
         self.retranslateUi(MainWindow)
+
         QMetaObject.connectSlotsByName(MainWindow)
+    # setupUi
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
@@ -112,4 +105,5 @@ class Ui_MainWindow(object):
         self.connectButton.setText(QCoreApplication.translate("MainWindow", u"Connect to MQTT", None))
         self.fashLabel.setText(QCoreApplication.translate("MainWindow", u"Fish: 0", None))
         self.sendfishButton.setText(QCoreApplication.translate("MainWindow", u"Send Fish", None))
+    # retranslateUi
 
