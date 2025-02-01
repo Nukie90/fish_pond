@@ -63,7 +63,7 @@ class Ui_MainWindow(object):
         self.pondnameLabel = QLabel(self.centralwidget)
         self.pondnameLabel.setObjectName("pondnameLabel")
         self.pondnameLabel.setGeometry(QRect(300, 30, 480, 41))
-        self.pondnameLabel.setStyleSheet('font: 700 36pt "Times New Roman";')
+        self.pondnameLabel.setStyleSheet('font: 700 36pt "Times New Roman"; color: black;')
         self.pondnameLabel.setAlignment(Qt.AlignCenter)
         self.buttonsFrame = QFrame(self.centralwidget)
         self.buttonsFrame.setObjectName("buttonsFrame")

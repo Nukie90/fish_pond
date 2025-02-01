@@ -1,6 +1,10 @@
 from PySide6.QtWidgets import QMainWindow
+from PySide6.QtCore import QPoint
+import random
 from ui.generated.pond_ui import Ui_MainWindow
 from core.mqtt_client import MqttClient
+from core.pond import Pond
+from ui.widgets.fish_widget import FishWidget
 
 
 class PondWindow(QMainWindow):
@@ -10,6 +14,8 @@ class PondWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.mqtt_client = MqttClient()
+        self.pond = Pond(name="DC Universe")
+        self.fish_widgets = {}
 
         self.setup_connections()
 
@@ -27,9 +33,26 @@ class PondWindow(QMainWindow):
             print(f"Failed to connect: {e}")
 
     def handle_add_fish(self):
-        # TODO: Implement add fish functionality
-        print("Add fish")
-        pass
+        """Handle adding a new fish to the pond"""
+        # Create new fish in the pond
+        fish = self.pond.add_fish()
+
+        # Create and setup fish widget
+        fish_widget = FishWidget(self.ui.mainFrame)
+
+        # Random position within the pond frame
+        x = random.randint(0, self.ui.mainFrame.width() - fish_widget.width())
+        y = random.randint(0, self.ui.mainFrame.height() - fish_widget.height())
+        fish_widget.move(QPoint(x, y))
+
+        # Start lifetime countdown
+        fish_widget.start_lifetime(fish.lifetime)
+        fish_widget.show()
+
+        # Store reference to widget
+        self.fish_widgets[fish.fish_id] = fish_widget
+
+        print(f"Added fish with ID: {fish.fish_id}")
 
     def handle_send_fish(self):
         # TODO: Implement send fish functionality

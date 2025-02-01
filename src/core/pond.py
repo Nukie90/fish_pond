@@ -1,13 +1,26 @@
 from dataclasses import dataclass, field
 from typing import Dict, List
 from datetime import datetime
+import uuid
 
 
 @dataclass
 class Fish:
-    fish_id: str
-    spawn_time: datetime
-    from_pond: str
+    fish_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    spawn_time: datetime = field(default_factory=datetime.now)
+    from_pond: str = ""
+    lifetime: int = 15
+
+    @property
+    def remaining_lifetime(self) -> float:
+        """Calculate remaining lifetime in seconds"""
+        elapsed = (datetime.now() - self.spawn_time).total_seconds()
+        return max(0, self.lifetime - elapsed)
+
+    @property
+    def is_alive(self) -> bool:
+        """Check if fish is still alive"""
+        return self.remaining_lifetime > 0
 
 
 @dataclass
@@ -15,9 +28,16 @@ class Pond:
     name: str
     fishes: Dict[str, Fish] = field(default_factory=dict)
     connected_ponds: List[str] = field(default_factory=list)
+    fish_lifetime: int = 15
 
-    def add_fish(self, fish: Fish) -> None:
+    def add_fish(self) -> Fish:
+        """Create and add a new fish to the pond"""
+        fish = Fish(
+            from_pond=self.name,
+            lifetime=self.fish_lifetime,
+        )
         self.fishes[fish.fish_id] = fish
+        return fish
 
     def remove_fish(self, fish_id: str) -> Fish:
         if fish_id in self.fishes:
