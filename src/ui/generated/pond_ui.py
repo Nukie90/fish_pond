@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'PondUI.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.0
+## Created by: Qt User Interface Compiler version 6.6.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -48,7 +48,6 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSizePolicy,
     QWidget,
-    QTextEdit,
 )
 from ui.resources import resources_rc
 
@@ -125,7 +124,6 @@ class Ui_MainWindow(object):
         font.setPointSize(18)
         self.fashLabel.setFont(font)
         self.fashLabel.setStyleSheet("color:rgb(0, 0, 0)")
-
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)

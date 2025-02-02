@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="pond">
+    <file>images/pond.png</file>
+  </qresource>
+</RCC>
