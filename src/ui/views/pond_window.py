@@ -86,7 +86,7 @@ class PondWindow(QMainWindow):
             return
 
         try:
-            send_to = "DC_Universe2"
+            send_to = "Parallel"
 
             if not self.pond.fishes:
                 print("No fish available to send!")
