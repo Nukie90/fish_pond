@@ -82,11 +82,15 @@ class MqttClient:
             match message.topic:
                 case self.hello_topic:
                     payload = json.loads(message.payload.decode())
-                    print(
-                        f"New pond registered: {payload['type']}, {payload['sender']}, {payload['timestamp']}"
-                    )
+                    sender = payload["sender"]
+                    if sender != self.group_name:  # Don't add ourselves
+                        print(
+                            f"New pond registered: {payload['type']}, {sender}, {payload['timestamp']}"
+                        )
+                        self.pond_window.pond.add_connected_pond(sender)
                 case self.our_fish_topic:
                     payload = json.loads(message.payload.decode())
+                    print(payload)
                     print(
                         f"Received fish: {payload['name']} {payload['group_name']} {payload['lifetime']}"
                     )

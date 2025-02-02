@@ -1,13 +1,15 @@
+import os
 import uuid
+import random
 from PySide6.QtWidgets import QMainWindow, QWidget
 from PySide6.QtCore import Qt
-import random
 from datetime import datetime
 from core.mqtt_client import MqttClient
 from core.pond import Pond, Fish
 from ui.widgets.fish_widget import FishWidget
 from ui.generated.pond_ui import Ui_MainWindow
 from PySide6.QtCore import Signal, QObject
+from ui.dialogs.pond_selection_dialog import PondSelectionDialog
 
 
 class PondWindow(QMainWindow):
@@ -38,6 +40,7 @@ class PondWindow(QMainWindow):
         """Setup event handlers"""
         self.ui.addfishButton.clicked.connect(self.handle_add_fish)
         self.ui.sendfishButton.clicked.connect(self.handle_send_fish)
+        self.ui.sendrandomButton.clicked.connect(self.handle_send_random_fish)
         self.ui.connectButton.clicked.connect(self.handle_mqtt_connection)
 
     def handle_mqtt_connection(self):
@@ -84,12 +87,60 @@ class PondWindow(QMainWindow):
             return
 
         try:
-            send_to = "DC_Universe2"
+            connected_ponds = self.pond.get_connected_ponds()
+            if not connected_ponds:
+                print("No connected ponds available!")
+                return
 
             if not self.pond.fishes:
                 print("No fish available to send!")
                 return
 
+            # Show pond selection dialog
+            dialog = PondSelectionDialog(connected_ponds, self)
+            if dialog.exec() == PondSelectionDialog.Accepted:
+                send_to = dialog.selected_pond()
+                if send_to:  # Make sure a pond was selected or randomly chosen
+                    name, fish = random.choice(list(self.pond.fishes.items()))
+
+                    self.mqtt_client.send_fish(
+                        name=name,
+                        group_name=self.pond.name,
+                        lifetime=fish.lifetime,
+                        send_to=send_to,
+                    )
+
+                    self.fish_widgets[name].die()
+                    print(f"Sent fish with name: {name} to {send_to}")
+
+        except Exception as e:
+            print(f"Failed to send fish: {e}")
+
+    def handle_send_random_fish(self):
+        """Handle sending a fish to a random pond"""
+        if not self.mqtt_client.is_connected():
+            print("Cannot send fish: Not connected to MQTT broker")
+            return
+
+        try:
+            # Get available group names from GIF files
+            gif_dir = os.path.join("src", "ui", "resources", "images")
+            available_groups = []
+            for file in os.listdir(gif_dir):
+                if file.endswith(".gif"):
+                    group_name = os.path.splitext(file)[0]
+                    if group_name != self.pond.name:  # Don't include our own pond
+                        available_groups.append(group_name)
+
+            if not available_groups:
+                print("No available ponds to send to!")
+                return
+
+            if not self.pond.fishes:
+                print("No fish available to send!")
+                return
+
+            send_to = random.choice(available_groups)
             name, fish = random.choice(list(self.pond.fishes.items()))
 
             self.mqtt_client.send_fish(
@@ -101,6 +152,7 @@ class PondWindow(QMainWindow):
 
             self.fish_widgets[name].die()
             print(f"Sent fish with name: {name} to {send_to}")
+
         except Exception as e:
             print(f"Failed to send fish: {e}")
 
