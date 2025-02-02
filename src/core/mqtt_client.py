@@ -63,15 +63,12 @@ class MqttClient:
         self.client.publish(self.hello_topic, payload)
         print(f"Sent hello message: {payload}")
 
-    def send_fish(
-        self, name: str, group_name: str, lifetime: int, send_to: str, data: str
-    ):
+    def send_fish(self, name: str, group_name: str, lifetime: int, send_to: str):
         """Send a fish to another pond"""
         message = {
             "name": name,
             "group_name": group_name,
             "lifetime": lifetime,
-            "data": data,
         }
 
         topic = f"user/{send_to}"
@@ -84,20 +81,16 @@ class MqttClient:
         try:
             match message.topic:
                 case self.hello_topic:
-                    data = json.loads(message.payload.decode())
+                    payload = json.loads(message.payload.decode())
                     print(
-                        f"New pond registered: {data['type']}, {data['sender']}, {data['timestamp']}"
+                        f"New pond registered: {payload['type']}, {payload['sender']}, {payload['timestamp']}"
                     )
-                    if data["sender"] != self.group_name:
-                        self.client.subscribe(f"user/{data['sender']}", 0)
-                        print(f"Subscribed to user/{data['sender']}")
                 case self.our_fish_topic:
-                    data = json.loads(message.payload.decode())
-                    print(data)
+                    payload = json.loads(message.payload.decode())
                     print(
-                        f"Received fish: {data['name']} {data['group_name']} {data['lifetime']}"
+                        f"Received fish: {payload['name']} {payload['group_name']} {payload['lifetime']}"
                     )
-                    self.pond_window.fish_received.emit(data)
+                    self.pond_window.fish_received.emit(payload)
 
         except Exception as e:
             print(f"Error handling message: {str(e)}")

@@ -1,9 +1,6 @@
 from PySide6.QtWidgets import QLabel
 from PySide6.QtCore import QTimer, Qt
 from PySide6.QtGui import QMovie
-import requests
-from io import BytesIO
-import tempfile
 import os
 
 
@@ -16,12 +13,11 @@ class FishWidget(QLabel):
         self.setFixedSize(200, 200)
         self.setAttribute(Qt.WA_TranslucentBackground)
 
-        # Initialize movie as None
+        # Initialize movie
         self.movie = None
-        self.gif_path = None
 
         # Load the GIF
-        self.load_gif(fish.data)
+        self.load_gif(fish.group_name)
 
         self.remaining_lifetime = None
         self.lifetime_timer = None
@@ -29,31 +25,23 @@ class FishWidget(QLabel):
         self.setMouseTracking(True)
         self.setCursor(Qt.PointingHandCursor)
 
-    def load_gif(self, url):
-        """Load GIF from URL"""
+    def load_gif(self, group_name):
+        """Load GIF"""
         try:
-            # Download GIF
-            response = requests.get(url)
-            if response.status_code == 200:
-                # Save to temporary file
-                with tempfile.NamedTemporaryFile(
-                    delete=False, suffix=".gif"
-                ) as tmp_file:
-                    tmp_file.write(response.content)
-                    tmp_file.flush()  # Ensure all data is written
-                    self.gif_path = tmp_file.name
+            gif_path = os.path.join(
+                "src", "ui", "resources", "images", f"{group_name}.gif"
+            )
 
-                # Create and set up QMovie
-                if os.path.exists(self.gif_path):
-                    self.movie = QMovie(self.gif_path)
-                    if self.movie.isValid():
-                        self.setMovie(self.movie)
-                        self.movie.start()
-                    else:
-                        print("Invalid GIF file")
-                        self.cleanup_gif()
+            if os.path.exists(gif_path):
+                self.movie = QMovie(gif_path)
+                if self.movie.isValid():
+                    self.setMovie(self.movie)
+                    self.movie.start()
                 else:
-                    print("GIF file not found")
+                    print(f"Invalid GIF file for group: {group_name}")
+                    self.cleanup_gif()
+            else:
+                print(f"GIF file not found for group: {group_name}")
 
         except Exception as e:
             print(f"Error loading GIF: {e}")
@@ -64,13 +52,6 @@ class FishWidget(QLabel):
         if self.movie:
             self.movie.stop()
             self.movie = None
-
-        if self.gif_path and os.path.exists(self.gif_path):
-            try:
-                os.unlink(self.gif_path)
-                self.gif_path = None
-            except Exception as e:
-                print(f"Error cleaning up GIF file: {e}")
 
     def start_lifetime(self, seconds: int):
         """Start the lifetime countdown"""

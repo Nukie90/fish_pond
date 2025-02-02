@@ -7,9 +7,8 @@ import uuid
 @dataclass
 class Fish:
     name: str
-    group_name: str
-    lifetime: int
-    data: str
+    group_name: str = "DC_Universe"
+    lifetime: int = 15
 
     @property
     def remaining_lifetime(self):
@@ -28,13 +27,12 @@ class Pond:
     fishes: Dict[str, Fish] = field(default_factory=dict)
     connected_ponds: List[str] = field(default_factory=list)
 
-    def add_fish(self, name, group_name, lifetime, data):
+    def add_fish(self, name, group_name, lifetime):
         """Create and add a new fish to the pond"""
         fish = Fish(
             name=name,
             group_name=group_name,
             lifetime=lifetime,
-            data=data,
         )
         self.fishes[fish.name] = fish
         return fish

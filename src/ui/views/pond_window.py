@@ -57,24 +57,22 @@ class PondWindow(QMainWindow):
             name=str(uuid.uuid4()),
             group_name=self.pond.name,
             lifetime=15,
-            data="https://drive.google.com/uc?id=1qkGAxmmiL6AQMXi5ssArBk-7RoqtD7U3",
         )
         self.create_fish_widget(fish)
         print(f"Added fish with name: {fish.name}, lifetime: {fish.lifetime} seconds")
 
-    def handle_received_fish(self, message):
+    def handle_received_fish(self, payload):
         """Handle receiving a fish from another pond"""
         try:
             fish = self.pond.add_fish(
-                name=message.get("name", ""),
-                group_name=message["group_name"],
-                lifetime=message["lifetime"],
-                data=message["data"],
+                name=payload.get("name", ""),
+                group_name=payload["group_name"],
+                lifetime=payload["lifetime"],
             )
-            print(fish)
             self.create_fish_widget(fish)
-            fish_info = f"Received fish from {message['group_name']}, name: {message['name']}, lifetime: {message['lifetime']} seconds"
-            print(fish_info)
+            print(
+                f"Received fish from {payload['group_name']}, name: {payload['name']}, lifetime: {payload['lifetime']} seconds"
+            )
 
         except Exception as e:
             print(f"Error handling received fish: {e}")
@@ -86,7 +84,7 @@ class PondWindow(QMainWindow):
             return
 
         try:
-            send_to = "Parallel"
+            send_to = "DC_Universe2"
 
             if not self.pond.fishes:
                 print("No fish available to send!")
@@ -99,7 +97,6 @@ class PondWindow(QMainWindow):
                 group_name=self.pond.name,
                 lifetime=fish.lifetime,
                 send_to=send_to,
-                data=fish.data,
             )
 
             self.fish_widgets[name].die()
