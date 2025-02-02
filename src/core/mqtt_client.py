@@ -2,14 +2,11 @@ import json
 import time
 import paho.mqtt.client as mqtt
 from config.settings import MQTT_CONFIG
-from typing import Callable
-import base64
-from pathlib import Path
-import os
 
 
 class MqttClient:
-    def __init__(self):
+    def __init__(self, pond_window):
+        self.pond_window = pond_window
         self.broker = MQTT_CONFIG["BROKER"]
         self.port = MQTT_CONFIG["PORT"]
         self.username = MQTT_CONFIG["USERNAME"]
@@ -66,17 +63,6 @@ class MqttClient:
         self.client.publish(self.hello_topic, payload)
         print(f"Sent hello message: {payload}")
 
-    def _on_message(self, client, userdata, message):
-        """Handle incoming MQTT messages"""
-        try:
-            if message.topic == self.our_fish_topic:
-                # Forward message directly to pond window
-                if hasattr(self, "pond_window"):
-                    self.pond_window.handle_received_fish(message)
-
-        except Exception as e:
-            print(f"Error handling message: {e}")
-
     def send_fish(
         self, name: str, group_name: str, lifetime: int, send_to: str, data: str
     ):
@@ -91,7 +77,27 @@ class MqttClient:
         topic = f"user/{send_to}"
         payload = json.dumps(message)
         print(f"Sending fish to topic: {topic}")
-        print(
-            f"Payload: {message['name']} {message['group_name']} {message['lifetime']}"
-        )
         self.client.publish(topic, payload)
+
+    def _on_message(self, client, userdata, message):
+        """Handle incoming MQTT messages"""
+        try:
+            match message.topic:
+                case self.hello_topic:
+                    data = json.loads(message.payload.decode())
+                    print(
+                        f"New pond registered: {data['type']}, {data['sender']}, {data['timestamp']}"
+                    )
+                    if data["sender"] != self.group_name:
+                        self.client.subscribe(f"user/{data['sender']}", 0)
+                        print(f"Subscribed to user/{data['sender']}")
+                case self.our_fish_topic:
+                    data = json.loads(message.payload.decode())
+                    print(data)
+                    print(
+                        f"Received fish: {data['name']} {data['group_name']} {data['lifetime']}"
+                    )
+                    self.pond_window.fish_received.emit(data)
+
+        except Exception as e:
+            print(f"Error handling message: {str(e)}")
